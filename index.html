@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SYSTEM // Hunter Fitness Protocol v4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-void: #030407; --bg-deep: #070910; --bg-surface: #0b0d18;
+    --bg-panel: #0e1020; --bg-card: #121528; --bg-hover: #181c35;
+    --border: #1a1e3a; --border-bright: #252c55; --border-glow: #00c8ff;
+    --cyan: #00c8ff; --cyan-dim: #0085bb; --cyan-faint: #002233;
+    --cyan-glow: rgba(0,200,255,0.15);
+    --gold: #ffd060; --gold-dim: #b8902a; --green: #00ff99;
+    --red: #ff3860; --purple: #9b5de5; --orange: #ff8c42;
+    --text-primary: #e8eeff; --text-secondary: #8892b0;
+    --text-muted: #404870; --text-label: #00c8ff;
+    --font-display: 'Orbitron', monospace; --font-ui: 'Rajdhani', sans-serif;
+    --font-mono: 'Share Tech Mono', monospace;
+    --radius: 4px; --transition: 0.2s ease;
+    --tier-e: #8892b0; --tier-d: #00c8ff; --tier-c: #00ff99;
+    --tier-b: #ffd060; --tier-a: #ff8c42; --tier-s: #ff3860;
+    --tier-ss: #9b5de5; --tier-monarch: #ffd060;
+    --nav-h: 60px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg-void); color: var(--text-primary);
+    font-family: var(--font-ui); font-size: 16px; line-height: 1.5;
+    min-height: 100vh; overflow-x: hidden;
+    padding-bottom: calc(var(--nav-h) + 10px);
+  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg-deep); }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 50px 50px; opacity: 0.2; pointer-events: none;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(0,200,255,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  #app { position: relative; z-index: 1; max-width: 1160px; margin: 0 auto; padding: 0 16px 20px; }
+
+  /* ── HEADER ── */
+  header {
+    padding: 20px 0 16px; display: flex; align-items: center;
+    justify-content: space-between; border-bottom: 1px solid var(--border);
+    margin-bottom: 16px; position: relative;
+  }
+  header::after {
+    content: ''; position: absolute; bottom: -1px; left: 0;
+    width: 200px; height: 1px;
+    background: linear-gradient(90deg, var(--cyan), transparent);
+  }
+  .header-left .sys-tag { font-family: var(--font-mono); font-size: 9px; color: var(--cyan); letter-spacing: 4px; opacity: 0.7; margin-bottom: 3px; }
+  .header-left h1 {
+    font-family: var(--font-display); font-size: clamp(16px, 3vw, 28px);
+    font-weight: 900; letter-spacing: 2px; color: var(--text-primary);
+    text-shadow: 0 0 30px rgba(0,200,255,0.4); line-height: 1;
+  }
+  .header-left h1 span { color: var(--cyan); }
+  .header-right { text-align: right; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+  #header-date { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); letter-spacing: 2px; }
+  .header-btns { display: flex; gap: 6px; }
+  .hdr-btn { font-family: var(--font-mono); font-size: 9px; background: none; border: 1px solid var(--border-bright); padding: 4px 8px; cursor: pointer; border-radius: var(--radius); letter-spacing: 1px; transition: var(--transition); }
+  #header-reset-btn { color: var(--red); border-color: rgba(255,56,96,0.3); }
+  #header-reset-btn:hover { background: rgba(255,56,96,0.1); border-color: var(--red); }
+  #header-wipe-btn { color: var(--text-muted); }
+  #header-wipe-btn:hover { background: rgba(255,255,255,0.05); border-color: var(--text-secondary); color: var(--text-secondary); }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── BOTTOM NAV ── */
+  #bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    height: var(--nav-h);
+    background: var(--bg-panel); border-top: 1px solid var(--border);
+    display: flex; align-items: stretch;
+  }
+  #bottom-nav::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.4;
+  }
+  .nav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; background: none; border: none; cursor: pointer; transition: var(--transition);
+    padding: 0; color: var(--text-muted); position: relative;
+  }
+  .nav-btn.active { color: var(--cyan); }
+  .nav-btn.active::after {
+    content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 2px;
+    background: var(--cyan); box-shadow: 0 0 8px var(--cyan);
+    border-radius: 0 0 2px 2px;
+  }
+  .nav-btn:hover:not(.active) { color: var(--text-secondary); background: var(--bg-hover); }
+  .nav-icon { font-size: 18px; line-height: 1; }
+  .nav-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 1px; text-transform: uppercase; }
+
+  /* ── TIER BANNER ── */
+  #tier-banner {
+    padding: 10px 16px; border-radius: var(--radius); border: 1px solid var(--border);
+    background: var(--bg-panel); margin-bottom: 16px; display: flex;
+    align-items: center; gap: 14px; position: relative; overflow: hidden;
+  }
+  #tier-banner::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, var(--tier-color, var(--cyan)), transparent);
+  }
+  .tb-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tier-color, var(--cyan)); box-shadow: 0 0 10px var(--tier-color, var(--cyan)); flex-shrink: 0; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.8);} }
+  .tb-info { flex: 1; }
+  .tb-tier { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); letter-spacing: 2px; }
+  .tb-desc { font-family: var(--font-ui); font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+  #tier-name { font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: 3px; color: var(--tier-color, var(--cyan)); text-shadow: 0 0 15px var(--tier-color, rgba(0,200,255,0.5)); }
+  .tb-weeks { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-align: right; }
+  .tb-weeks span { color: var(--tier-color, var(--cyan)); }
+
+  /* ── QUICK STATS ── */
+  .quick-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+  @media (max-width: 600px) { .quick-stats { grid-template-columns: repeat(2, 1fr); } }
+  .qs-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; position: relative; overflow: hidden; }
+  .qs-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; }
+  .qs-card.streak::before { background: linear-gradient(90deg, var(--orange), transparent); }
+  .qs-card.best::before { background: linear-gradient(90deg, var(--gold), transparent); }
+  .qs-card.total::before { background: linear-gradient(90deg, var(--purple), transparent); }
+  .qs-card.countdown::before { background: linear-gradient(90deg, var(--cyan), transparent); }
+  .qs-label { font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); letter-spacing: 2px; margin-bottom: 3px; }
+  .qs-value { font-family: var(--font-display); font-size: 20px; font-weight: 900; line-height: 1; }
+  .qs-card.streak .qs-value { color: var(--orange); text-shadow: 0 0 12px rgba(255,140,66,0.4); }
+  .qs-card.best .qs-value { color: var(--gold); }
+  .qs-card.total .qs-value { color: var(--purple); }
+  .qs-card.countdown .qs-value { color: var(--cyan); font-size: 14px; }
+  .qs-sub { font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── MAIN GRID ── */
+  .main-grid { display: grid; grid-template-columns: 270px 1fr; gap: 16px; }
+  @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } }
+  .left-col, .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── PANEL ── */
+  .panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); position: relative; overflow: hidden; }
+  .panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, var(--cyan), var(--purple), transparent); opacity: 0.3; }
+  .panel-header { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .ph-dot { width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; box-shadow: 0 0 6px var(--cyan); flex-shrink: 0; }
+  .panel-header h2 { font-family: var(--font-display); font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--text-label); }
+  .panel-header .ph-sub { margin-left: auto; font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); letter-spacing: 1px; }
+  .panel-body { padding: 14px; }
+
+  /* ── PROFILE ── */
+  .profile-card .panel-body { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 14px; }
+  .avatar-ring { position: relative; width: 84px; height: 84px; }
+  .avatar-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: var(--border-bright); stroke-width: 3; }
+  .ring-fill { fill: none; stroke: var(--cyan); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 251; stroke-dashoffset: 251; transition: stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1), stroke 0.5s ease; }
+  .avatar-inner { position: absolute; inset: 8px; background: var(--bg-deep); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 24px; font-weight: 900; color: var(--cyan); text-shadow: 0 0 20px var(--cyan); border: 1px solid var(--border-bright); transition: color 0.5s ease, text-shadow 0.5s ease; }
+  .profile-rank { font-family: var(--font-mono); font-size: 8px; letter-spacing: 3px; text-transform: uppercase; }
+  .profile-name-input { font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: 2px; color: var(--text-primary); text-align: center; background: transparent; border: none; border-bottom: 1px solid transparent; width: 100%; outline: none; cursor: text; transition: border-color 0.2s; }
+  .profile-name-input:hover { border-bottom-color: var(--border-bright); }
+  .profile-name-input:focus { border-bottom-color: var(--cyan); }
+  .profile-class { font-family: var(--font-mono); font-size: 9px; color: var(--cyan); letter-spacing: 2px; text-transform: uppercase; margin-top: -6px; }
+  .level-block { width: 100%; background: var(--bg-deep); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; }
+  .level-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .level-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); letter-spacing: 2px; }
+  .level-value { font-family: var(--font-display); font-size: 24px; font-weight: 900; color: var(--cyan); text-shadow: 0 0 20px rgba(0,200,255,0.5); line-height: 1; }
+  .xp-label-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .xp-label-row span { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); letter-spacing: 1px; }
+  .xp-current { color: var(--cyan) !important; }
+  .xp-bar-track { width: 100%; height: 6px; background: var(--bg-void); border-radius: 4px; border: 1px solid var(--border); overflow: hidden; }
+  .xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--cyan-dim), var(--cyan)); border-radius: 4px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 0 6px var(--cyan); position: relative; overflow: hidden; }
+  .xp-bar-fill::after { content: ''; position: absolute; top: 0; bottom: 0; width: 40px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation: shimmer 2s infinite; }
+  @keyframes shimmer { 0%{left:-40px;} 100%{left:calc(100% + 40px);} }
+  .stat-points-badge { display: flex; align-items: center; gap: 8px; width: 100%; background: linear-gradient(135deg, rgba(155,93,229,0.12), rgba(0,200,255,0.06)); border: 1px solid rgba(155,93,229,0.35); border-radius: var(--radius); padding: 6px 10px; }
+  .sp-icon { font-size: 14px; }
+  .sp-text { flex: 1; font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); letter-spacing: 1px; }
+  .sp-count { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--purple); text-shadow: 0 0 10px rgba(155,93,229,0.6); }
+
+  /* ── STATS ── */
+  .stat-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-icon { font-size: 13px; width: 18px; text-align: center; flex-shrink: 0; }
+  .stat-info { flex: 1; min-width: 0; }
+  .stat-name { font-family: var(--font-mono); font-size: 9px; color: var(--text-secondary); letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 3px; }
+  .stat-bar-track { height: 3px; background: var(--bg-void); border-radius: 2px; overflow: hidden; }
+  .stat-bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+  .stat-value-group { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .stat-val { font-family: var(--font-display); font-size: 14px; font-weight: 700; min-width: 24px; text-align: right; }
+  .stat-btn { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border-bright); background: var(--bg-deep); color: var(--cyan); cursor: pointer; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: var(--transition); line-height: 1; }
+  .stat-btn:hover:not(:disabled) { background: var(--cyan-faint); border-color: var(--cyan); }
+  .stat-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+  .stat-strength .stat-bar-fill { background: linear-gradient(90deg, #cc4020, #ff7050); }
+  .stat-agility  .stat-bar-fill { background: linear-gradient(90deg, var(--cyan-dim), var(--cyan)); }
+  .stat-stamina  .stat-bar-fill { background: linear-gradient(90deg, #008c50, var(--green)); }
+  .stat-strength .stat-val { color: #ff7050; }
+  .stat-agility  .stat-val { color: var(--cyan); }
+  .stat-stamina  .stat-val { color: var(--green); }
+
+  /* ── WEEKLY ── */
+  .week-tracker { padding: 12px 14px; }
+  .week-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .week-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); letter-spacing: 2px; flex: 1; }
+  .week-val { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--gold); }
+  .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .day-dot { aspect-ratio: 1; border-radius: 3px; border: 1px solid var(--border-bright); background: var(--bg-void); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); transition: var(--transition); position: relative; }
+  .day-dot.active { background: var(--bg-deep); border-color: var(--cyan); color: var(--cyan); }
+  .day-dot.done { background: linear-gradient(135deg, rgba(0,200,255,0.2), rgba(0,255,153,0.15)); border-color: var(--cyan); }
+  .day-dot.done::after { content: '✓'; font-size: 10px; color: var(--cyan); }
+  .day-dot.rest { border-color: var(--border); color: var(--text-muted); opacity: 0.4; font-size: 7px; }
+  .week-next { margin-top: 10px; padding: 8px 10px; background: var(--bg-deep); border: 1px dashed rgba(255,208,96,0.2); border-radius: var(--radius); }
+  .week-next-label { font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); letter-spacing: 2px; margin-bottom: 3px; }
+  .week-next-text { font-family: var(--font-ui); font-size: 12px; font-weight: 600; color: var(--gold); }
+
+  /* ── TIER ROAD ── */
+  .tier-road { padding: 12px 14px; display: flex; flex-direction: column; gap: 5px; }
+  .tier-step { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg-deep); transition: var(--transition); position: relative; overflow: hidden; }
+  .tier-step.current { border-color: rgba(0,200,255,0.4); background: rgba(0,200,255,0.04); }
+  .tier-step.done { opacity: 0.4; }
+  .tier-step.locked { opacity: 0.28; }
+  .ts-color { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .ts-info { flex: 1; min-width: 0; }
+  .ts-name { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; font-weight: 700; }
+  .ts-range { font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); }
+  .ts-badge { font-family: var(--font-mono); font-size: 8px; letter-spacing: 1px; padding: 2px 6px; border-radius: 2px; }
+  .done-badge { background: rgba(0,200,255,0.1); color: var(--cyan); border: 1px solid rgba(0,200,255,0.2); }
+  .cur-badge { background: rgba(0,200,255,0.2); color: var(--cyan); border: 1px solid var(--cyan); }
+  .lock-badge { background: rgba(255,255,255,0.04); color: var(--text-muted); border: 1px solid var(--border); }
+
+  /* ── PB GRID ── */
+  .pb-grid { padding: 10px 14px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .pb-card { background: var(--bg-deep); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; }
+  .pb-name { font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 2px; }
+  .pb-val { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--gold); }
+  .pb-unit { font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); }
+  .pb-empty { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-align: center; padding: 16px; grid-column: 1/-1; }
+
+  /* ── QUESTS ── */
+  .quest-tier-label { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; background: var(--bg-deep); }
+  .qtl-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .qtl-text { font-family: var(--font-mono); font-size: 9px; color: var(--text-secondary); flex: 1; }
+  .qtl-badge { font-family: var(--font-mono); font-size: 8px; color: var(--cyan); background: var(--cyan-faint); border: 1px solid rgba(0,200,255,0.2); padding: 2px 6px; border-radius: 2px; letter-spacing: 1px; }
+  #rest-day-panel { background: linear-gradient(135deg, rgba(155,93,229,0.08), rgba(0,200,255,0.05)); border: 1px solid rgba(155,93,229,0.2); border-radius: var(--radius); padding: 16px; text-align: center; display: none; }
+  .rdp-label { font-family: var(--font-mono); font-size: 8px; color: var(--purple); letter-spacing: 3px; margin-bottom: 10px; }
+  .rdp-quote { font-family: var(--font-ui); font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; line-height: 1.4; font-style: italic; }
+  .rdp-attr { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); }
+  #all-done-banner { display: none; text-align: center; padding: 12px; background: linear-gradient(135deg, rgba(0,200,255,0.08), rgba(0,255,153,0.05)); border: 1px solid rgba(0,200,255,0.2); border-radius: var(--radius); }
+  #all-done-banner p { font-family: var(--font-mono); font-size: 10px; color: var(--cyan); letter-spacing: 2px; }
+  .quest-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .quest-item:last-child { border-bottom: none; }
+  .quest-checkbox { width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border-bright); background: var(--bg-deep); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; transition: var(--transition); outline: none; }
+  .quest-checkbox.done { background: rgba(0,200,255,0.15); border-color: var(--cyan); }
+  .quest-checkbox:hover:not(.done) { border-color: var(--cyan-dim); background: var(--cyan-faint); }
+  .quest-icon { font-size: 16px; flex-shrink: 0; }
+  .quest-info { flex: 1; min-width: 0; }
+  .quest-name { font-family: var(--font-ui); font-size: 14px; font-weight: 600; color: var(--text-primary); display: block; }
+  .quest-progress-bar-track { height: 2px; background: var(--bg-void); border-radius: 1px; margin-top: 4px; overflow: hidden; }
+  .quest-progress-bar-fill { height: 100%; background: var(--cyan); border-radius: 1px; transition: width 0.4s ease; }
+  .quest-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+  .quest-xp { font-family: var(--font-mono); font-size: 9px; color: var(--gold); letter-spacing: 1px; }
+  .quest-input { width: 52px; background: var(--bg-deep); border: 1px solid var(--border-bright); border-radius: var(--radius); color: var(--text-primary); font-family: var(--font-display); font-size: 11px; font-weight: 700; text-align: center; padding: 4px; outline: none; transition: var(--transition); }
+  .quest-input:focus { border-color: var(--cyan); }
+  .quest-target { font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); white-space: nowrap; }
+  .quest-target-num { color: var(--cyan); }
+
+  /* ── TIMER WIDGET ── */
+  #timer-panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; position: relative; overflow: hidden; }
+  #timer-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, var(--orange), var(--red), transparent); }
+  .timer-body { padding: 14px; }
+  .timer-display { text-align: center; padding: 16px 0 8px; }
+  .timer-big { font-family: var(--font-display); font-size: 52px; font-weight: 900; color: var(--cyan); text-shadow: 0 0 30px rgba(0,200,255,0.5); line-height: 1; letter-spacing: 3px; transition: color 0.3s; }
+  .timer-big.rest-mode { color: var(--green); text-shadow: 0 0 30px rgba(0,255,153,0.5); }
+  .timer-big.warning { color: var(--red); text-shadow: 0 0 30px rgba(255,56,96,0.6); animation: blink 0.5s infinite; }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  .timer-mode-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 4px; color: var(--text-muted); margin-top: 4px; }
+  .timer-presets { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin: 10px 0; }
+  .preset-btn { font-family: var(--font-mono); font-size: 9px; padding: 5px 10px; border-radius: var(--radius); border: 1px solid var(--border-bright); background: var(--bg-deep); color: var(--text-secondary); cursor: pointer; transition: var(--transition); letter-spacing: 1px; }
+  .preset-btn:hover { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-faint); }
+  .preset-btn.active { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-faint); }
+  .timer-controls { display: flex; gap: 8px; }
+  .timer-btn { flex: 1; font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; padding: 10px; border-radius: var(--radius); border: 1px solid; cursor: pointer; transition: var(--transition); font-weight: 700; }
+  #timer-start-btn { border-color: var(--cyan); background: rgba(0,200,255,0.1); color: var(--cyan); }
+  #timer-start-btn:hover { background: rgba(0,200,255,0.2); }
+  #timer-reset-btn { border-color: var(--border-bright); background: var(--bg-deep); color: var(--text-muted); }
+  #timer-reset-btn:hover { border-color: var(--red); color: var(--red); }
+  .timer-custom-row { display: flex; gap: 6px; margin-top: 8px; }
+  .timer-input { flex: 1; background: var(--bg-deep); border: 1px solid var(--border-bright); border-radius: var(--radius); color: var(--text-primary); font-family: var(--font-display); font-size: 14px; text-align: center; padding: 6px; outline: none; transition: var(--transition); }
+  .timer-input:focus { border-color: var(--cyan); }
+  .timer-input-label { font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); text-align: center; margin-top: 2px; }
+  .timer-set-btn { font-family: var(--font-mono); font-size: 9px; padding: 6px 12px; border-radius: var(--radius); border: 1px solid rgba(0,200,255,0.3); background: var(--cyan-faint); color: var(--cyan); cursor: pointer; transition: var(--transition); letter-spacing: 1px; align-self: center; }
+  .timer-set-btn:hover { background: rgba(0,200,255,0.15); }
+
+  /* ── CUSTOM QUESTS ── */
+  .custom-quest-form { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-bottom: 1px solid var(--border); }
+  .cqf-row { display: flex; gap: 8px; }
+  .cqf-input { flex: 1; background: var(--bg-deep); border: 1px solid var(--border-bright); border-radius: var(--radius); color: var(--text-primary); font-family: var(--font-ui); font-size: 13px; padding: 7px 10px; outline: none; transition: var(--transition); }
+  .cqf-input:focus { border-color: var(--cyan); }
+  .cqf-input::placeholder { color: var(--text-muted); }
+  .cqf-input.small { width: 80px; flex: none; }
+  .cqf-add-btn { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; padding: 7px 14px; border-radius: var(--radius); border: 1px solid rgba(0,200,255,0.4); background: var(--cyan-faint); color: var(--cyan); cursor: pointer; transition: var(--transition); white-space: nowrap; }
+  .cqf-add-btn:hover { background: rgba(0,200,255,0.15); border-color: var(--cyan); }
+  .custom-quest-list { padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
+  .cq-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg-deep); border: 1px solid var(--border); border-radius: var(--radius); }
+  .cq-check { width: 20px; height: 20px; border-radius: 3px; border: 1px solid var(--border-bright); background: var(--bg-card); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; transition: var(--transition); }
+  .cq-check.done { background: rgba(0,255,153,0.1); border-color: var(--green); color: var(--green); }
+  .cq-info { flex: 1; min-width: 0; }
+  .cq-name { font-family: var(--font-ui); font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .cq-meta { font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); }
+  .cq-delete { font-size: 12px; cursor: pointer; color: var(--text-muted); padding: 4px; border-radius: 3px; transition: var(--transition); background: none; border: none; }
+  .cq-delete:hover { color: var(--red); background: rgba(255,56,96,0.1); }
+  .cq-empty { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-align: center; padding: 14px; }
+
+  /* ── BODY WEIGHT TRACKER ── */
+  .bw-form { display: flex; gap: 8px; padding: 14px; border-bottom: 1px solid var(--border); }
+  .bw-input { flex: 1; background: var(--bg-deep); border: 1px solid var(--border-bright); border-radius: var(--radius); color: var(--text-primary); font-family: var(--font-display); font-size: 18px; text-align: center; padding: 8px; outline: none; transition: var(--transition); }
+  .bw-input:focus { border-color: var(--cyan); }
+  .bw-unit-toggle { font-family: var(--font-mono); font-size: 9px; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border-bright); background: var(--bg-deep); color: var(--text-muted); cursor: pointer; transition: var(--transition); letter-spacing: 1px; }
+  .bw-unit-toggle:hover { border-color: var(--cyan); color: var(--cyan); }
+  .bw-log-btn { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; padding: 8px 14px; border-radius: var(--radius); border: 1px solid rgba(0,200,255,0.4); background: var(--cyan-faint); color: var(--cyan); cursor: pointer; transition: var(--transition); }
+  .bw-log-btn:hover { background: rgba(0,200,255,0.15); }
+  .bw-chart { padding: 14px; }
+  .bw-chart-title { font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); letter-spacing: 2px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+  .bw-bars { display: flex; align-items: flex-end; gap: 4px; height: 80px; }
+  .bw-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; height: 100%; justify-content: flex-end; }
+  .bw-bar { width: 100%; background: rgba(0,200,255,0.3); border-radius: 2px 2px 0 0; border-top: 1px solid var(--cyan); transition: height 0.5s ease; min-height: 2px; }
+  .bw-bar:last-child { background: rgba(0,200,255,0.6); border-color: var(--cyan); }
+  .bw-bar-label { font-family: var(--font-mono); font-size: 6px; color: var(--text-muted); }
+  .bw-stats-row { display: flex; gap: 8px; margin-top: 10px; }
+  .bw-stat { flex: 1; background: var(--bg-deep); border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 8px; }
+  .bw-stat-label { font-family: var(--font-mono); font-size: 7px; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 2px; }
+  .bw-stat-val { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--cyan); }
+  .bw-empty { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); text-align: center; padding: 20px; }
+
+  /* ── BOSS FIGHT ── */
+  .boss-panel { background: linear-gradient(135deg, rgba(155,93,229,0.1), rgba(255,56,96,0.05)); border: 1px solid rgba(155,93,229,0.3); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
+  .boss-name { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--purple); letter-spacing: 2px; margin-bottom: 4px; }
+  .boss-desc { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); margin-bottom: 10px; }
+  .boss-hp-label { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); margin-bottom: 4px; }
+  .boss-hp-track { height: 10px; background: var(--bg-void); border-radius: 4px; border: 1px solid rgba(255,56,96,0.2); overflow: hidden; }
+  .boss-hp-fill { height: 100%; background: linear-gradient(90deg, var(--red), var(--purple)); border-radius: 4px; transition: width 0.8s ease; box-shadow: 0 0 8px rgba(255,56,96,0.4); }
+  .boss-reward { font-family: var(--font-mono); font-size: 8px; color: var(--gold); margin-top: 6px; }
+  .boss-defeated { background: rgba(0,255,153,0.06); border-color: rgba(0,255,153,0.2); }
+  .boss-defeated .boss-name { color: var(--green); }
+  .boss-defeated .boss-hp-fill { background: linear-gradient(90deg, var(--green), var(--cyan)); width: 100% !important; }
+
+  /* ── LOG ── */
+  .log-list { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
+  .log-entry { display: flex; gap: 8px; align-items: baseline; font-size: 12px; padding: 4px 6px; border-radius: 3px; }
+  .log-entry.xp  { background: rgba(255,208,96,0.05); }
+  .log-entry.lvl { background: rgba(0,200,255,0.07); }
+  .log-entry.tier { background: rgba(155,93,229,0.07); }
+  .log-entry.pb  { background: rgba(0,255,153,0.05); }
+  .log-time { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
+  .log-msg  { font-family: var(--font-ui); color: var(--text-secondary); flex: 1; }
+  .log-val  { font-family: var(--font-mono); font-size: 10px; color: var(--gold); flex-shrink: 0; }
+  .log-entry.xp .log-val { color: var(--gold); }
+  .log-entry.lvl .log-msg { color: var(--cyan); font-weight: 600; }
+  .log-entry.tier .log-msg { color: var(--purple); font-weight: 600; }
+  .log-entry.pb .log-msg  { color: var(--green); }
+
+  /* ── MODAL ── */
+  .modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: rgba(3,4,7,0.85); backdrop-filter: blur(8px); opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 20px; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal-box { background: var(--bg-panel); border: 1px solid var(--border-bright); border-radius: var(--radius); max-width: 380px; width: 100%; padding: 28px 24px; text-align: center; transform: scale(0.9); transition: transform 0.3s; position: relative; }
+  .modal-overlay.open .modal-box { transform: scale(1); }
+  .modal-title { font-family: var(--font-display); font-size: 20px; font-weight: 900; letter-spacing: 3px; color: var(--cyan); text-shadow: 0 0 30px rgba(0,200,255,0.6); margin-bottom: 6px; }
+  .modal-sub { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); letter-spacing: 2px; margin-bottom: 16px; }
+  .modal-body { font-family: var(--font-ui); font-size: 15px; color: var(--text-secondary); margin-bottom: 20px; }
+  .modal-close { font-family: var(--font-mono); font-size: 10px; padding: 8px 24px; border-radius: var(--radius); border: 1px solid rgba(0,200,255,0.4); background: var(--cyan-faint); color: var(--cyan); cursor: pointer; transition: var(--transition); letter-spacing: 2px; }
+  .modal-close:hover { background: rgba(0,200,255,0.15); }
+  .modal-stars { font-size: 28px; letter-spacing: 6px; margin-bottom: 12px; }
+
+  /* ── FOOTER ── */
+  footer { font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); text-align: center; padding: 20px 0 8px; letter-spacing: 2px; }
+
+  /* ── SECTION TITLE ── */
+  .section-title { font-family: var(--font-display); font-size: 9px; font-weight: 700; letter-spacing: 3px; color: var(--text-muted); text-transform: uppercase; padding: 6px 0 8px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+
+  /* ── TOOLS PAGE layout ── */
+  .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 600px) { .tools-grid { grid-template-columns: 1fr; } }
+  .tools-full { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-left">
+      <div class="sys-tag">// HUNTER SYSTEM v4.0 //</div>
+      <h1>HUNTER <span>FITNESS</span></h1>
+    </div>
+    <div class="header-right">
+      <div id="header-date"></div>
+      <div class="header-btns">
+        <button class="hdr-btn" id="header-reset-btn">RESET DAY</button>
+        <button class="hdr-btn" id="header-wipe-btn">WIPE</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── PAGE: DASHBOARD ── -->
+  <div id="page-dashboard" class="page active">
+    <div id="tier-banner">
+      <div class="tb-dot"></div>
+      <div class="tb-info">
+        <div class="tb-tier">CURRENT TIER</div>
+        <div id="tier-name">E-RANK</div>
+        <div class="tb-desc" id="tier-desc">Build the habit.</div>
+      </div>
+      <div class="tb-weeks"><div>WEEK</div><span id="tb-week-num">1</span></div>
+    </div>
+
+    <div class="quick-stats">
+      <div class="qs-card streak">
+        <div class="qs-label">STREAK</div>
+        <div class="qs-value" id="qs-streak">0</div>
+        <div class="qs-sub">days</div>
+      </div>
+      <div class="qs-card best">
+        <div class="qs-label">BEST</div>
+        <div class="qs-value" id="qs-best">0</div>
+        <div class="qs-sub">days</div>
+      </div>
+      <div class="qs-card total">
+        <div class="qs-label">WORKOUTS</div>
+        <div class="qs-value" id="qs-total">0</div>
+        <div class="qs-sub">total</div>
+      </div>
+      <div class="qs-card countdown">
+        <div class="qs-label">RESET IN</div>
+        <div class="qs-value" id="countdown-timer">00:00:00</div>
+        <div class="qs-sub">hh:mm:ss</div>
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <div class="left-col">
+        <!-- Profile -->
+        <div class="panel profile-card">
+          <div class="panel-header"><div class="ph-dot"></div><h2>Hunter Profile</h2></div>
+          <div class="panel-body">
+            <div class="avatar-ring">
+              <svg viewBox="0 0 88 88"><circle class="ring-bg" cx="44" cy="44" r="40"/><circle class="ring-fill" id="xp-ring" cx="44" cy="44" r="40"/></svg>
+              <div class="avatar-inner" id="avatar-level">1</div>
+            </div>
+            <div class="profile-rank" id="profile-rank-label">E-RANK HUNTER</div>
+            <input class="profile-name-input" id="profile-name" type="text" value="SUNG JIN-WOO" maxlength="24" autocomplete="off" spellcheck="false">
+            <div class="profile-class" id="profile-class">SHADOW SOLDIER</div>
+            <div class="level-block">
+              <div class="level-row">
+                <span class="level-label">LEVEL</span>
+                <span class="level-value" id="level-val">1</span>
+              </div>
+              <div class="xp-label-row">
+                <span class="xp-current" id="xp-cur">0 XP</span>
+                <span id="xp-need">80 XP</span>
+              </div>
+              <div class="xp-bar-track"><div class="xp-bar-fill" id="xp-bar" style="width:0%"></div></div>
+            </div>
+            <div class="stat-points-badge">
+              <span class="sp-icon">⬡</span>
+              <span class="sp-text">STAT POINTS</span>
+              <span class="sp-count" id="sp-count">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="panel">
+          <div class="panel-header"><div class="ph-dot"></div><h2>Attributes</h2><span class="ph-sub" id="stats-sub">allocate SP</span></div>
+          <div class="panel-body" style="padding-top:4px;padding-bottom:4px;">
+            <div class="stat-row stat-strength">
+              <span class="stat-icon">⚔️</span>
+              <div class="stat-info"><span class="stat-name">Strength</span><div class="stat-bar-track"><div class="stat-bar-fill" id="str-bar" style="width:1%"></div></div></div>
+              <div class="stat-value-group">
+                <button class="stat-btn" id="str-minus" disabled>−</button>
+                <span class="stat-val" id="str-val">1</span>
+                <button class="stat-btn" id="str-plus">+</button>
+              </div>
+            </div>
+            <div class="stat-row stat-agility">
+              <span class="stat-icon">💨</span>
+              <div class="stat-info"><span class="stat-name">Agility</span><div class="stat-bar-track"><div class="stat-bar-fill" id="agi-bar" style="width:1%"></div></div></div>
+              <div class="stat-value-group">
+                <button class="stat-btn" id="agi-minus" disabled>−</button>
+                <span class="stat-val" id="agi-val">1</span>
+                <button class="stat-btn" id="agi-plus">+</button>
+              </div>
+            </div>
+            <div class="stat-row stat-stamina">
+              <span class="stat-icon">🛡️</span>
+              <div class="stat-info"><span class="stat-name">Stamina</span><div class="stat-bar-track"><div class="stat-bar-fill" id="sta-bar" style="width:1%"></div></div></div>
+              <div class="stat-value-group">
+                <button class="stat-btn" id="sta-minus" disabled>−</button>
+                <span class="stat-val" id="sta-val">1</span>
+                <button class="stat-btn" id="sta-plus">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Personal Bests -->
+        <div class="panel">
+          <div class="panel-header"><div class="ph-dot"></div><h2>Personal Bests</h2><span class="ph-sub">all time</span></div>
+          <div class="pb-grid" id="pb-grid"><div class="pb-empty">Complete quests to set records</div></div>
+        </div>
+
+        <!-- Weekly -->
+        <div class="panel">
+          <div class="panel-header"><div class="ph-dot"></div><h2>Weekly Progress</h2><span class="ph-sub" id="week-days-label">0/4 days</span></div>
+          <div class="week-tracker">
+            <div class="week-row">
+              <span class="week-label">TRAINING WEEK</span>
+              <span class="week-val" id="week-num-big">1</span>
+            </div>
+            <div class="days-grid" id="days-grid"></div>
+            <div class="week-next" id="week-next-box">
+              <div class="week-next-label">NEXT MILESTONE</div>
+              <div class="week-next-text" id="week-next-text">Keep training to unlock harder challenges!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tier Road -->
+        <div class="panel">
+          <div class="panel-header"><div class="ph-dot"></div><h2>Rank Roadmap</h2></div>
+          <div class="tier-road" id="tier-road"></div>
+        </div>
+      </div>
+
+      <div class="right-col">
+        <!-- Boss Fight -->
+        <div class="panel" id="boss-container">
+          <div class="panel-header"><div class="ph-dot" style="background:var(--red);box-shadow:0 0 6px var(--red);"></div><h2>Boss Raid</h2><span class="ph-sub" id="boss-sub">active threat</span></div>
+          <div class="panel-body">
+            <div id="boss-display"></div>
+          </div>
+        </div>
+
+        <!-- Daily Quests -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="ph-dot"></div>
+            <h2>Daily Quests</h2>
+            <span class="ph-sub" id="quest-count-label">0 / 0</span>
+          </div>
+          <div class="panel-body">
+            <div class="quest-tier-label" id="quest-tier-label">
+              <div class="qtl-dot" id="qtl-dot"></div>
+              <p class="qtl-text" id="qtl-text">Complete your daily training to earn XP and level up.</p>
+              <div class="qtl-badge" id="qtl-badge">TIER 1</div>
+            </div>
+            <div id="rest-day-panel">
+              <div class="rdp-label">// REST DAY PROTOCOL //</div>
+              <div class="rdp-quote" id="rdp-quote">Recovery is part of training.</div>
+              <div class="rdp-attr" id="rdp-attr">— System</div>
+            </div>
+            <div id="quest-list"></div>
+            <div id="all-done-banner"><p>✦ ALL QUESTS COMPLETE — DAILY CONDITIONING ACHIEVED ✦</p></div>
+          </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="panel">
+          <div class="panel-header"><div class="ph-dot"></div><h2>Activity Log</h2><span class="ph-sub" id="log-count">0 entries</span></div>
+          <div class="panel-body" style="padding:10px 14px;">
+            <div class="log-list" id="log-list">
+              <div class="log-entry"><span class="log-time">--:--</span><span class="log-msg">System initialised. Awaiting hunter activity.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer>// HUNTER SYSTEM v4.0 // LEVEL UP YOUR BODY // POWERED BY DAILY DISCIPLINE //</footer>
+  </div>
+
+  <!-- ── PAGE: TOOLS ── -->
+  <div id="page-tools" class="page">
+    <div class="section-title">// TRAINING TOOLS</div>
+    <div class="tools-grid">
+
+      <!-- Timer -->
+      <div class="panel tools-full" id="timer-panel">
+        <div class="panel-header"><div class="ph-dot" style="background:var(--orange);box-shadow:0 0 6px var(--orange);"></div><h2>Workout Timer</h2><span class="ph-sub" id="timer-status-label">standby</span></div>
+        <div class="timer-body">
+          <div class="timer-display">
+            <div class="timer-big" id="timer-display">00:00</div>
+            <div class="timer-mode-label" id="timer-mode-label">SELECT MODE</div>
+          </div>
+          <div class="timer-presets">
+            <button class="preset-btn" data-secs="30">30s REST</button>
+            <button class="preset-btn" data-secs="60">1m REST</button>
+            <button class="preset-btn" data-secs="90">90s REST</button>
+            <button class="preset-btn" data-secs="120">2m REST</button>
+            <button class="preset-btn" data-secs="300">5m RUN</button>
+            <button class="preset-btn" data-secs="600">10m RUN</button>
+          </div>
+          <div class="timer-custom-row">
+            <div>
+              <input class="timer-input" id="timer-min-input" type="number" min="0" max="99" value="0" placeholder="MM">
+              <div class="timer-input-label">MIN</div>
+            </div>
+            <div>
+              <input class="timer-input" id="timer-sec-input" type="number" min="0" max="59" value="30" placeholder="SS">
+              <div class="timer-input-label">SEC</div>
+            </div>
+            <button class="timer-set-btn" id="timer-set-btn">SET</button>
+          </div>
+          <div class="timer-controls" style="margin-top:12px;">
+            <button class="timer-btn" id="timer-start-btn">▶ START</button>
+            <button class="timer-btn" id="timer-reset-btn">↺ RESET</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom Quests -->
+      <div class="panel" style="grid-column:1/-1;">
+        <div class="panel-header"><div class="ph-dot" style="background:var(--green);box-shadow:0 0 6px var(--green);"></div><h2>Custom Quests</h2><span class="ph-sub">your rules</span></div>
+        <div class="custom-quest-form">
+          <input class="cqf-input" id="cqf-name" type="text" placeholder="Quest name (e.g. Jump rope 200 reps)..." maxlength="60">
+          <div class="cqf-row">
+            <input class="cqf-input small" id="cqf-target" type="number" placeholder="Target" min="1">
+            <input class="cqf-input small" id="cqf-unit" type="text" placeholder="Unit (reps/min/km)" maxlength="10">
+            <input class="cqf-input small" id="cqf-xp" type="number" placeholder="XP" min="1" max="500">
+            <button class="cqf-add-btn" id="cqf-add-btn">+ ADD QUEST</button>
+          </div>
+        </div>
+        <div class="custom-quest-list" id="custom-quest-list">
+          <div class="cq-empty">No custom quests yet. Add one above!</div>
+        </div>
+      </div>
+
+      <!-- Body Weight Tracker -->
+      <div class="panel" style="grid-column:1/-1;">
+        <div class="panel-header"><div class="ph-dot" style="background:var(--gold);box-shadow:0 0 6px var(--gold);"></div><h2>Body Weight</h2><span class="ph-sub" id="bw-sub">track progress</span></div>
+        <div class="bw-form">
+          <input class="bw-input" id="bw-input" type="number" placeholder="0.0" step="0.1" min="20" max="400">
+          <button class="bw-unit-toggle" id="bw-unit-btn">KG</button>
+          <button class="bw-log-btn" id="bw-log-btn">LOG</button>
+        </div>
+        <div class="bw-chart" id="bw-chart">
+          <div class="bw-empty">Log your weight to start tracking progress</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── MODAL ── -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-box" id="modal-box">
+      <div class="modal-stars" id="modal-stars">★★★</div>
+      <div class="modal-title" id="modal-title">LEVEL UP</div>
+      <div class="modal-sub" id="modal-sub">SYSTEM NOTIFICATION</div>
+      <div class="modal-body" id="modal-body"></div>
+      <button class="modal-close" id="modal-close">ACKNOWLEDGED</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── BOTTOM NAV ── -->
+<nav id="bottom-nav">
+  <button class="nav-btn active" data-page="dashboard">
+    <span class="nav-icon">⚔️</span>
+    <span class="nav-label">Dashboard</span>
+  </button>
+  <button class="nav-btn" data-page="tools">
+    <span class="nav-icon">⏱️</span>
+    <span class="nav-label">Tools</span>
+  </button>
+</nav>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   DATA
+══════════════════════════════════════════════════════════ */
+const TIERS = [
+  { id:'e', name:'E-RANK', color:'#8892b0', minLevel:1, maxLevel:4, title:'Beginner Conditioning Protocol', desc:'Build the habit. Mon / Wed / Fri / Sat.', trainDays:4,
+    quests:[{id:'pushups',name:'Push-ups',target:25,unit:'reps',xp:22,icon:'💪'},{id:'situps',name:'Sit-ups',target:30,unit:'reps',xp:20,icon:'🔥'},{id:'squats',name:'Squats',target:30,unit:'reps',xp:20,icon:'🦵'},{id:'plank',name:'Plank Hold',target:2,unit:'min',xp:18,icon:'⚡'},{id:'walk',name:'Walk / Light Jog',target:3,unit:'km',xp:18,icon:'🚶'}]},
+  { id:'d', name:'D-RANK', color:'#00c8ff', minLevel:5, maxLevel:8, title:'Basic Fighter Protocol', desc:'Reps increase. Run is introduced.', trainDays:3,
+    quests:[{id:'pushups',name:'Push-ups',target:30,unit:'reps',xp:25,icon:'💪'},{id:'situps',name:'Sit-ups',target:40,unit:'reps',xp:22,icon:'🔥'},{id:'squats',name:'Squats',target:40,unit:'reps',xp:22,icon:'🦵'},{id:'plank',name:'Plank Hold',target:2,unit:'min',xp:18,icon:'⚡'},{id:'run',name:'Run',target:3,unit:'km',xp:30,icon:'🏃'}]},
+  { id:'c', name:'C-RANK', color:'#00ff99', minLevel:9, maxLevel:12, title:'Intermediate Hunter Protocol', desc:'Pull-ups join the roster. Volume climbs.', trainDays:4,
+    quests:[{id:'pushups',name:'Push-ups',target:50,unit:'reps',xp:28,icon:'💪'},{id:'situps',name:'Sit-ups',target:60,unit:'reps',xp:25,icon:'🔥'},{id:'squats',name:'Squats',target:60,unit:'reps',xp:28,icon:'🦵'},{id:'pullups',name:'Pull-ups',target:5,unit:'reps',xp:35,icon:'🏋️'},{id:'plank',name:'Plank Hold',target:3,unit:'min',xp:22,icon:'⚡'},{id:'run',name:'Run',target:5,unit:'km',xp:38,icon:'🏃'}]},
+  { id:'b', name:'B-RANK', color:'#ffd060', minLevel:13, maxLevel:17, title:'Advanced Warrior Protocol', desc:'High volume. Cardio extends. Core pressure.', trainDays:4,
+    quests:[{id:'pushups',name:'Push-ups',target:75,unit:'reps',xp:32,icon:'💪'},{id:'situps',name:'Sit-ups',target:80,unit:'reps',xp:28,icon:'🔥'},{id:'squats',name:'Squats',target:80,unit:'reps',xp:32,icon:'🦵'},{id:'pullups',name:'Pull-ups',target:12,unit:'reps',xp:40,icon:'🏋️'},{id:'plank',name:'Plank Hold',target:4,unit:'min',xp:25,icon:'⚡'},{id:'run',name:'Run',target:7,unit:'km',xp:50,icon:'🏃'}]},
+  { id:'a', name:'A-RANK', color:'#ff8c42', minLevel:18, maxLevel:22, title:'Elite Raider Protocol', desc:'Full body performance demands. No mercy.', trainDays:5,
+    quests:[{id:'pushups',name:'Push-ups',target:100,unit:'reps',xp:38,icon:'💪'},{id:'situps',name:'Sit-ups',target:100,unit:'reps',xp:34,icon:'🔥'},{id:'squats',name:'Squats',target:100,unit:'reps',xp:38,icon:'🦵'},{id:'pullups',name:'Pull-ups',target:20,unit:'reps',xp:50,icon:'🏋️'},{id:'dips',name:'Tricep Dips',target:30,unit:'reps',xp:32,icon:'🤸'},{id:'plank',name:'Plank Hold',target:5,unit:'min',xp:28,icon:'⚡'},{id:'run',name:'Run',target:10,unit:'km',xp:65,icon:'🏃'}]},
+  { id:'s', name:'S-RANK', color:'#ff3860', minLevel:23, maxLevel:27, title:'National Level Protocol', desc:'Beyond ordinary human limits. True monster.', trainDays:5,
+    quests:[{id:'pushups',name:'Push-ups',target:150,unit:'reps',xp:45,icon:'💪'},{id:'situps',name:'Sit-ups',target:150,unit:'reps',xp:40,icon:'🔥'},{id:'squats',name:'Squats',target:150,unit:'reps',xp:45,icon:'🦵'},{id:'pullups',name:'Pull-ups',target:30,unit:'reps',xp:60,icon:'🏋️'},{id:'dips',name:'Tricep Dips',target:50,unit:'reps',xp:38,icon:'🤸'},{id:'burpees',name:'Burpees',target:50,unit:'reps',xp:55,icon:'🌪️'},{id:'plank',name:'Plank Hold',target:5,unit:'min',xp:30,icon:'⚡'},{id:'run',name:'Run',target:15,unit:'km',xp:80,icon:'🏃'}]},
+  { id:'monarch', name:'SHADOW MONARCH', color:'#9b5de5', minLevel:28, maxLevel:Infinity, title:'Arise Protocol — Shadow Monarch', desc:'The peak. Where legends are made.', trainDays:6,
+    quests:[{id:'pushups',name:'Push-ups',target:200,unit:'reps',xp:55,icon:'💪'},{id:'situps',name:'Sit-ups',target:200,unit:'reps',xp:50,icon:'🔥'},{id:'squats',name:'Squats',target:200,unit:'reps',xp:55,icon:'🦵'},{id:'pullups',name:'Pull-ups',target:50,unit:'reps',xp:75,icon:'🏋️'},{id:'dips',name:'Tricep Dips',target:80,unit:'reps',xp:48,icon:'🤸'},{id:'burpees',name:'Burpees',target:100,unit:'reps',xp:70,icon:'🌪️'},{id:'plank',name:'Plank Hold',target:10,unit:'min',xp:40,icon:'⚡'},{id:'run',name:'Run',target:20,unit:'km',xp:100,icon:'🏃'}]},
+];
+const RANKS=[{min:1,max:4,label:'E-RANK HUNTER'},{min:5,max:8,label:'D-RANK HUNTER'},{min:9,max:12,label:'C-RANK HUNTER'},{min:13,max:17,label:'B-RANK HUNTER'},{min:18,max:22,label:'A-RANK HUNTER'},{min:23,max:27,label:'S-RANK HUNTER'},{min:28,max:Infinity,label:'✦ SHADOW MONARCH ✦'}];
+const REST_QUOTES=[
+  {q:"The weak point of all hunters is not lack of strength, but lack of patience.",a:"System"},
+  {q:"Rest is not a reward — it is a weapon. Sharpen yourself.",a:"System"},
+  {q:"The body repairs itself in silence. Let it work.",a:"System"},
+  {q:"Even shadow soldiers need to regenerate. Recovery is not laziness.",a:"System"},
+  {q:"Your muscles grow when you rest, not when you train. This is law.",a:"System"},
+];
+const BOSSES = [
+  {id:'b1', name:'IRON GOLEM', desc:'Defeat it by completing 5 training days.', icon:'🗿', goal:'workouts', target:5, reward:'150 Bonus XP + Title: Iron Breaker', xpBonus:150},
+  {id:'b2', name:'SHADOW WOLF', desc:'Chain a 7-day training streak.', icon:'🐺', goal:'streak', target:7, reward:'300 Bonus XP + Title: Streak Hunter', xpBonus:300},
+  {id:'b3', name:'DUNGEON GUARDIAN', desc:'Complete 20 total workouts.', icon:'⚔️', goal:'workouts', target:20, reward:'500 Bonus XP + Title: Guardian Slayer', xpBonus:500},
+  {id:'b4', name:'THE BEAST MONARCH', desc:'Reach a 14-day streak.', icon:'👑', goal:'streak', target:14, reward:'800 Bonus XP + Title: Monarch\'s Shadow', xpBonus:800},
+  {id:'b5', name:'THOMAS ANDRE', desc:'Complete 50 total workouts.', icon:'🏔️', goal:'workouts', target:50, reward:'1500 Bonus XP + Title: National Level', xpBonus:1500},
+];
+
+const XP_BASE=80, XP_SCALE=1.18, SP_PER_LEVEL=2, STAT_MAX=99, STAT_BAR_MAX=60;
+const STORAGE_KEY='hunterState_v4';
+const DEFAULT_STATE={
+  level:1,xp:0,statPoints:0,
+  stats:{strength:1,agility:1,stamina:1},
+  questProgress:{},questXpClaimed:{},
+  personalBests:{},log:[],
+  lastResetDate:'',weeklyDays:[],
+  totalWeeksCompleted:0,currentWeek:1,
+  currentStreak:0,bestStreak:0,
+  totalWorkouts:0,lastWorkoutDate:'',
+  hunterName:'SUNG JIN-WOO',
+  defeatedBosses:[],
+  customQuests:[],customQuestProgress:{},
+  bodyWeight:[],bodyWeightUnit:'KG',
+};
+let state=loadState();
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const s=JSON.parse(raw);
+      const m=JSON.parse(JSON.stringify(DEFAULT_STATE));
+      for(const k of Object.keys(DEFAULT_STATE)){
+        if(typeof DEFAULT_STATE[k]!=='object'||DEFAULT_STATE[k]===null){
+          if(s[k]!==undefined)m[k]=s[k];
+        }
+      }
+      if(s.stats)m.stats={...DEFAULT_STATE.stats,...s.stats};
+      if(s.questProgress)m.questProgress=s.questProgress;
+      if(s.questXpClaimed)m.questXpClaimed=s.questXpClaimed;
+      if(s.personalBests)m.personalBests=s.personalBests;
+      if(Array.isArray(s.log))m.log=s.log;
+      if(Array.isArray(s.weeklyDays))m.weeklyDays=s.weeklyDays;
+      if(Array.isArray(s.defeatedBosses))m.defeatedBosses=s.defeatedBosses;
+      if(Array.isArray(s.customQuests))m.customQuests=s.customQuests;
+      if(s.customQuestProgress)m.customQuestProgress=s.customQuestProgress;
+      if(Array.isArray(s.bodyWeight))m.bodyWeight=s.bodyWeight;
+      if(s.bodyWeightUnit)m.bodyWeightUnit=s.bodyWeightUnit;
+      return m;
+    }
+  }catch(e){console.warn('State load error:',e);}
+  return JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
+function saveState(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}}
+function getTier(lvl){return TIERS.find(t=>lvl>=t.minLevel&&lvl<=t.maxLevel)||TIERS[TIERS.length-1];}
+function getRank(lvl){return RANKS.find(r=>lvl>=r.min&&lvl<=r.max)||RANKS[RANKS.length-1];}
+function getTodayStr(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function xpForLevel(lvl){return Math.floor(XP_BASE*Math.pow(XP_SCALE,lvl-1));}
+
+/* ── RESET ── */
+function checkDailyReset(){
+  const today=getTodayStr();
+  if(state.lastResetDate!==today){
+    state.questProgress={};state.questXpClaimed={};state.customQuestProgress={};
+    state.lastResetDate=today;
+    addLog('sys','New day — daily quests reset.','');
+    saveState();
+  }
+}
+
+/* ── STREAK ── */
+function recalcStreak(){
+  const sorted=[...state.weeklyDays].sort();
+  if(!sorted.length){state.currentStreak=0;return;}
+  const today=getTodayStr();
+  const yd=new Date();yd.setDate(yd.getDate()-1);
+  const ydStr=`${yd.getFullYear()}-${String(yd.getMonth()+1).padStart(2,'0')}-${String(yd.getDate()).padStart(2,'0')}`;
+  let streak=0,check=sorted.includes(today)?today:ydStr;
+  while(sorted.includes(check)){
+    streak++;const d=new Date(check);d.setDate(d.getDate()-1);
+    check=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  state.currentStreak=streak;
+  if(streak>(state.bestStreak||0))state.bestStreak=streak;
+}
+
+/* ── XP ── */
+function addXP(amount,source){
+  state.xp+=amount;
+  addLog('xp',`XP from ${source}`,`+${amount} XP`);
+  let levelled=false;let newLevel=state.level;let prevTier=getTier(state.level);
+  while(state.xp>=xpForLevel(state.level)){
+    state.xp-=xpForLevel(state.level);state.level+=1;state.statPoints+=SP_PER_LEVEL;
+    newLevel=state.level;levelled=true;
+    addLog('lvl',`Level Up! Now Level ${state.level}`,`+${SP_PER_LEVEL} SP`);
+  }
+  let newTier=getTier(state.level);
+  if(levelled&&newTier.id!==prevTier.id)addLog('tier',`TIER UNLOCKED: ${newTier.name} — ${newTier.title}`,'');
+  saveState();renderProfile();renderStats();
+  if(levelled)triggerLevelUp(newLevel,prevTier,newTier);
+}
+
+/* ── QUEST ── */
+function getProgress(id){return state.questProgress[id]||0;}
+function isClaimed(id){return state.questXpClaimed[id]||false;}
+function setProgress(id,value,target,xp,name,unit){
+  const clamped=Math.max(0,Math.min(target,value));
+  const wasDone=getProgress(id)>=target;
+  state.questProgress[id]=clamped;
+  if(!state.personalBests)state.personalBests={};
+  const prev=state.personalBests[id];
+  if(!prev||clamped>prev.value){
+    const isNew=prev&&clamped>prev.value;
+    state.personalBests[id]={value:clamped,unit,name};
+    if(isNew)addLog('pb',`New personal best: ${name}`,`${clamped} ${unit}`);
+  }
+  if(clamped>=target&&!wasDone&&!isClaimed(id)){
+    state.questXpClaimed[id]=true;saveState();addXP(xp,name);checkDayComplete();
+  } else {
+    if(clamped<target&&isClaimed(id)){
+      state.questXpClaimed[id]=false;state.xp=Math.max(0,state.xp-xp);
+      addLog('xp',`Progress undone for ${name}`,`-${xp} XP`);
+    }
+    saveState();renderProfile();
+  }
+  renderQuests();renderPersonalBests();
+}
+
+/* ── DAY COMPLETE ── */
+function checkDayComplete(){
+  const tier=getTier(state.level);
+  const allDone=tier.quests.every(q=>getProgress(q.id)>=q.target);
+  if(allDone){
+    const today=getTodayStr();
+    if(!state.weeklyDays.includes(today)){
+      state.weeklyDays.push(today);
+      state.totalWorkouts=(state.totalWorkouts||0)+1;
+      state.lastWorkoutDate=today;
+      recalcStreak();saveState();
+      addLog('sys','Day complete! Training session logged.','');
+      checkBosses();
+    }
+    renderWeekly();renderQuickStats();
+  }
+}
+
+/* ── STATS ── */
+function adjustStat(stat,delta){
+  const cur=state.stats[stat],next=cur+delta;
+  if(next<1||next>STAT_MAX)return;
+  if(delta>0&&state.statPoints<1)return;
+  if(delta<0&&cur<=1)return;
+  state.stats[stat]=next;
+  if(delta>0){state.statPoints--;addLog('stat',`Allocated to ${stat}`,`${stat}→${next}`);}
+  else{state.statPoints++;addLog('stat',`Removed from ${stat}`,`${stat}→${next}`);}
+  saveState();renderProfile();renderStats();
+}
+
+/* ── LOG ── */
+function addLog(type,msg,val){
+  const now=new Date();
+  const ts=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  state.log.unshift({type,msg,val,ts});
+  if(state.log.length>80)state.log.pop();
+  renderLog();
+}
+
+/* ── REST DAY ── */
+function isRestDay(){
+  const tier=getTier(state.level);
+  const dayOfWeek=(new Date().getDay()+6)%7;
+  const trainDayIndices=tier.trainDays>=6?[0,1,2,3,4,5]:tier.trainDays>=5?[0,1,2,3,4]:tier.trainDays>=4?[0,2,4,5]:[0,2,4];
+  return!trainDayIndices.includes(dayOfWeek);
+}
+
+/* ── BOSSES ── */
+function checkBosses(){
+  BOSSES.forEach(boss=>{
+    if(state.defeatedBosses.includes(boss.id))return;
+    let val=boss.goal==='streak'?state.currentStreak:state.totalWorkouts;
+    if(val>=boss.target){
+      state.defeatedBosses.push(boss.id);
+      addLog('tier',`BOSS DEFEATED: ${boss.name}!`,`+${boss.xpBonus} XP`);
+      addXP(boss.xpBonus,'Boss Raid: '+boss.name);
+      saveState();renderBosses();
+      showModal('⚔️','BOSS DEFEATED!',boss.name,`${boss.icon} You have slain ${boss.name}!\n\nReward: ${boss.reward}`,'CLAIM REWARD');
+    }
+  });
+}
+function getBossProgress(boss){
+  const val=boss.goal==='streak'?state.currentStreak:state.totalWorkouts;
+  return Math.min(val,boss.target);
+}
+
+/* ── MODAL ── */
+function showModal(stars,title,sub,body,btn){
+  document.getElementById('modal-stars').textContent=stars;
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-sub').textContent=sub;
+  document.getElementById('modal-body').textContent=body;
+  if(btn)document.getElementById('modal-close').textContent=btn;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+document.getElementById('modal-close').addEventListener('click',()=>{
+  document.getElementById('modal-overlay').classList.remove('open');
+});
+document.getElementById('modal-overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('modal-overlay'))document.getElementById('modal-overlay').classList.remove('open');
+});
+
+/* ── LEVEL UP ── */
+function triggerLevelUp(newLevel,prevTier,newTier){
+  const tierChange=newTier.id!==prevTier.id;
+  const stars=tierChange?'⭐⭐⭐':'⭐⭐';
+  const title=tierChange?'TIER UP!':'LEVEL UP';
+  const sub=tierChange?`${prevTier.name} → ${newTier.name}`:`HUNTER LEVEL ${newLevel}`;
+  const body=tierChange
+    ?`You have broken through to ${newTier.name}!\n${newTier.title}\n\n${newTier.desc}`
+    :`Level ${newLevel} achieved.\n+${SP_PER_LEVEL} Stat Points awarded.`;
+  showModal(stars,title,sub,body,'ACKNOWLEDGED');
+  renderTierBanner();renderTierRoad();
+}
+
+/* ══════════════════════════════════════════════════════════
+   RENDER
+══════════════════════════════════════════════════════════ */
+function renderProfile(){
+  const tier=getTier(state.level);const rank=getRank(state.level);
+  const xpNeeded=xpForLevel(state.level);const pct=Math.min(100,Math.round((state.xp/xpNeeded)*100));
+  document.getElementById('avatar-level').textContent=state.level;
+  document.getElementById('level-val').textContent=state.level;
+  document.getElementById('xp-cur').textContent=`${state.xp} XP`;
+  document.getElementById('xp-need').textContent=`${xpNeeded} XP`;
+  document.getElementById('xp-bar').style.width=pct+'%';
+  const ring=document.getElementById('xp-ring');
+  ring.style.strokeDashoffset=251-(251*pct/100);
+  ring.style.stroke=tier.color;
+  document.getElementById('profile-rank-label').textContent=rank.label;
+  document.getElementById('profile-rank-label').style.color=tier.color;
+  document.getElementById('sp-count').textContent=state.statPoints;
+  document.getElementById('profile-class').textContent=
+    state.level>=28?'SHADOW MONARCH':state.level>=23?'S-RANK HUNTER':state.level>=18?'A-RANK HUNTER':state.level>=13?'B-RANK HUNTER':state.level>=9?'C-RANK HUNTER':state.level>=5?'D-RANK HUNTER':'SHADOW SOLDIER';
+}
+function renderStats(){
+  const stats=state.stats;
+  ['strength','agility','stamina'].forEach(s=>{
+    const v=stats[s];
+    document.getElementById(`${s.slice(0,3)}-val`).textContent=v;
+    document.getElementById(`${s.slice(0,3)}-bar`).style.width=Math.min(100,Math.round((v/STAT_BAR_MAX)*100))+'%';
+    document.getElementById(`${s.slice(0,3)}-minus`).disabled=v<=1;
+    document.getElementById(`${s.slice(0,3)}-plus`).disabled=state.statPoints<1||v>=STAT_MAX;
+  });
+  document.getElementById('stats-sub').textContent=`${state.statPoints} SP available`;
+}
+function renderQuickStats(){
+  document.getElementById('qs-streak').textContent=state.currentStreak||0;
+  document.getElementById('qs-best').textContent=state.bestStreak||0;
+  document.getElementById('qs-total').textContent=state.totalWorkouts||0;
+}
+function renderTierBanner(){
+  const tier=getTier(state.level);
+  document.getElementById('tier-name').textContent=tier.name;
+  document.getElementById('tier-desc').textContent=tier.desc;
+  document.getElementById('tier-banner').style.setProperty('--tier-color',tier.color);
+  document.getElementById('tb-week-num').textContent=state.currentWeek||1;
+}
+function renderPersonalBests(){
+  const grid=document.getElementById('pb-grid');
+  const pbs=state.personalBests||{};
+  const keys=Object.keys(pbs).filter(k=>pbs[k]&&pbs[k].value>0);
+  grid.innerHTML='';
+  if(!keys.length){grid.innerHTML='<div class="pb-empty">Complete quests to set records</div>';return;}
+  keys.forEach(k=>{
+    const pb=pbs[k];
+    const card=document.createElement('div');card.className='pb-card';
+    card.innerHTML=`<div class="pb-name">${pb.name||k}</div><div><span class="pb-val">${pb.value}</span> <span class="pb-unit">${pb.unit||''}</span></div>`;
+    grid.appendChild(card);
+  });
+}
+function renderQuests(){
+  const tier=getTier(state.level);
+  const list=document.getElementById('quest-list');
+  const banner=document.getElementById('all-done-banner');
+  const restPanel=document.getElementById('rest-day-panel');
+  const qtlDot=document.getElementById('qtl-dot');
+  const qtlText=document.getElementById('qtl-text');
+  const qtlBadge=document.getElementById('qtl-badge');
+  qtlDot.style.background=tier.color;qtlDot.style.boxShadow=`0 0 6px ${tier.color}`;
+  qtlText.textContent=tier.desc;
+  qtlBadge.textContent=tier.name;
+  if(isRestDay()){
+    restPanel.style.display='block';list.innerHTML='';banner.style.display='none';
+    const q=REST_QUOTES[Math.floor(Math.random()*REST_QUOTES.length)];
+    document.getElementById('rdp-quote').textContent=q.q;
+    document.getElementById('rdp-attr').textContent='— '+q.a;
+    document.getElementById('quest-count-label').textContent='REST DAY';
+    return;
+  }
+  restPanel.style.display='none';
+  let completed=0;list.innerHTML='';
+  tier.quests.forEach(q=>{
+    const cur=getProgress(q.id);const done=cur>=q.target;
+    if(done)completed++;
+    const item=document.createElement('div');item.className='quest-item';
+    const pct=Math.min(100,Math.round((cur/q.target)*100));
+    item.innerHTML=`
+      <div class="quest-checkbox${done?' done':''}" data-id="${q.id}" role="button" tabindex="0">${done?'✓':''}</div>
+      <span class="quest-icon">${q.icon}</span>
+      <div class="quest-info">
+        <span class="quest-name">${q.name}</span>
+        <div class="quest-progress-bar-track"><div class="quest-progress-bar-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="quest-right">
+        <span class="quest-xp">+${q.xp} XP</span>
+        <input class="quest-input" data-id="${q.id}" data-target="${q.target}" data-xp="${q.xp}" data-name="${q.name}" data-unit="${q.unit}" type="number" min="0" max="${q.target}" value="${cur}">
+        <span class="quest-target">/ <span class="quest-target-num">${q.target}</span> ${q.unit}</span>
+      </div>`;
+    list.appendChild(item);
+  });
+  list.querySelectorAll('.quest-checkbox').forEach(cb=>{
+    const h=()=>{const id=cb.dataset.id;const def=tier.quests.find(q=>q.id===id);if(!def)return;const cur=getProgress(id);const next=cur>=def.target?0:def.target;setProgress(id,next,def.target,def.xp,def.name,def.unit);};
+    cb.addEventListener('click',h);cb.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();h();}});
+  });
+  list.querySelectorAll('.quest-input').forEach(inp=>{
+    inp.addEventListener('change',()=>{const id=inp.dataset.id;const target=parseInt(inp.dataset.target);const xp=parseInt(inp.dataset.xp);const name=inp.dataset.name;const unit=inp.dataset.unit;const val=parseInt(inp.value)||0;setProgress(id,val,target,xp,name,unit);});
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();});
+  });
+  document.getElementById('quest-count-label').textContent=`${completed} / ${tier.quests.length}`;
+  banner.style.display=completed===tier.quests.length?'block':'none';
+}
+function renderWeekly(){
+  const tier=getTier(state.level);
+  const grid=document.getElementById('days-grid');
+  const label=document.getElementById('week-days-label');
+  const nextTxt=document.getElementById('week-next-text');
+  grid.innerHTML='';
+  const days=['M','T','W','T','F','S','S'];
+  const today=getTodayStr();const now=new Date();
+  const dayOfWeek=(now.getDay()+6)%7;
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-dayOfWeek);
+  const trainDayIndices=tier.trainDays>=6?[0,1,2,3,4,5]:tier.trainDays>=5?[0,1,2,3,4]:tier.trainDays>=4?[0,2,4,5]:[0,2,4];
+  let doneThisWeek=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(weekStart);d.setDate(weekStart.getDate()+i);
+    const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const isToday=ds===today;const isDone=state.weeklyDays.includes(ds);
+    const isRest=!trainDayIndices.includes(i);if(isDone)doneThisWeek++;
+    const dot=document.createElement('div');
+    dot.className='day-dot'+(isToday?' active':'')+(isDone?' done':'')+(isRest&&!isDone?' rest':'');
+    if(!isDone)dot.textContent=days[i];dot.title=ds+(isRest?' (rest)':' (train)');
+    grid.appendChild(dot);
+  }
+  label.textContent=`${doneThisWeek}/${tier.trainDays} days`;
+  const firstDay=state.weeklyDays[0];
+  if(firstDay){const first=new Date(firstDay);const diff=Math.floor((now-first)/(7*24*60*60*1000));state.currentWeek=diff+1;}
+  else{state.currentWeek=1;}
+  document.getElementById('week-num-big').textContent=state.currentWeek;
+  const nextTier=TIERS[TIERS.indexOf(getTier(state.level))+1];
+  if(nextTier){const lvlsLeft=nextTier.minLevel-state.level;nextTxt.textContent=`${lvlsLeft} level${lvlsLeft!==1?'s':''} until ${nextTier.name}`;}
+  else{nextTxt.textContent='✦ MAXIMUM TIER ACHIEVED — SHADOW MONARCH ✦';}
+}
+function renderTierRoad(){
+  const road=document.getElementById('tier-road');
+  const curTier=getTier(state.level);road.innerHTML='';
+  TIERS.forEach(t=>{
+    const isCur=t.id===curTier.id;const isDone=t.maxLevel<state.level&&t.id!==curTier.id;const isLock=t.minLevel>state.level;
+    const div=document.createElement('div');
+    div.className='tier-step'+(isCur?' current':'')+(isDone?' done':'')+(isLock?' locked':'');
+    let badge=isDone?`<div class="ts-badge done-badge">✓</div>`:isCur?`<div class="ts-badge cur-badge">NOW</div>`:`<div class="ts-badge lock-badge">LV${t.minLevel}</div>`;
+    div.innerHTML=`<div class="ts-color" style="background:${t.color};box-shadow:0 0 6px ${t.color}"></div><div class="ts-info"><div class="ts-name" style="color:${t.color}">${t.name}</div><div class="ts-range">Lv.${t.minLevel}${t.maxLevel<Infinity?'–'+t.maxLevel:'+'}</div></div>${badge}`;
+    road.appendChild(div);
+  });
+}
+function renderLog(){
+  const logEl=document.getElementById('log-list');const countEl=document.getElementById('log-count');
+  logEl.innerHTML='';
+  state.log.forEach(entry=>{
+    const div=document.createElement('div');div.className=`log-entry ${entry.type||''}`;
+    div.innerHTML=`<span class="log-time">${entry.ts}</span><span class="log-msg">${entry.msg}</span>${entry.val?`<span class="log-val">${entry.val}</span>`:''}`;
+    logEl.appendChild(div);
+  });
+  countEl.textContent=`${state.log.length} entries`;
+}
+function renderBosses(){
+  const display=document.getElementById('boss-display');
+  display.innerHTML='';
+  const activeBoss=BOSSES.find(b=>!state.defeatedBosses.includes(b.id));
+  const recentDefeated=BOSSES.filter(b=>state.defeatedBosses.includes(b.id)).slice(-1)[0];
+  const toShow=activeBoss||(recentDefeated?{...recentDefeated,_defeated:true}:null);
+  if(!toShow){
+    document.getElementById('boss-sub').textContent='all cleared';
+    display.innerHTML='<div style="font-family:var(--font-mono);font-size:10px;color:var(--green);text-align:center;padding:16px;">✦ ALL BOSSES DEFEATED — TRUE HUNTER ✦</div>';
+    return;
+  }
+  const defeated=toShow._defeated||state.defeatedBosses.includes(toShow.id);
+  const progress=defeated?toShow.target:getBossProgress(toShow);
+  const pct=Math.min(100,Math.round((progress/toShow.target)*100));
+  const hpPct=defeated?100:(100-pct);
+  document.getElementById('boss-sub').textContent=defeated?'defeated':'active threat';
+  const div=document.createElement('div');
+  div.className='boss-panel'+(defeated?' boss-defeated':'');
+  div.innerHTML=`
+    <div class="boss-name">${toShow.icon} ${toShow.name}</div>
+    <div class="boss-desc">${toShow.desc}</div>
+    <div class="boss-hp-label"><span>BOSS HP</span><span>${defeated?'DEFEATED':progress+' / '+toShow.target}</span></div>
+    <div class="boss-hp-track"><div class="boss-hp-fill" style="width:${defeated?100:pct}%"></div></div>
+    <div class="boss-reward">🏆 Reward: ${toShow.reward}</div>`;
+  display.appendChild(div);
+}
+
+/* ── CUSTOM QUESTS ── */
+function renderCustomQuests(){
+  const list=document.getElementById('custom-quest-list');
+  list.innerHTML='';
+  if(!state.customQuests.length){
+    list.innerHTML='<div class="cq-empty">No custom quests yet. Add one above!</div>';return;
+  }
+  state.customQuests.forEach((q,i)=>{
+    const done=state.customQuestProgress[q.id];
+    const div=document.createElement('div');div.className='cq-item';
+    div.innerHTML=`
+      <div class="cq-check${done?' done':''}" data-idx="${i}">${done?'✓':''}</div>
+      <div class="cq-info">
+        <div class="cq-name">${q.name}</div>
+        <div class="cq-meta">${q.target} ${q.unit} · +${q.xp} XP</div>
+      </div>
+      <button class="cq-delete" data-idx="${i}">🗑</button>`;
+    list.appendChild(div);
+  });
+  list.querySelectorAll('.cq-check').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const idx=parseInt(el.dataset.idx);const q=state.customQuests[idx];if(!q)return;
+      const wasDone=state.customQuestProgress[q.id];
+      if(!wasDone){state.customQuestProgress[q.id]=true;addXP(q.xp,'Custom: '+q.name);}
+      else{state.customQuestProgress[q.id]=false;state.xp=Math.max(0,state.xp-q.xp);addLog('xp','Undone: '+q.name,`-${q.xp} XP`);renderProfile();}
+      saveState();renderCustomQuests();
+    });
+  });
+  list.querySelectorAll('.cq-delete').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const idx=parseInt(el.dataset.idx);
+      state.customQuests.splice(idx,1);saveState();renderCustomQuests();
+    });
+  });
+}
+document.getElementById('cqf-add-btn').addEventListener('click',()=>{
+  const name=document.getElementById('cqf-name').value.trim();
+  const target=parseInt(document.getElementById('cqf-target').value)||1;
+  const unit=document.getElementById('cqf-unit').value.trim()||'reps';
+  const xp=Math.min(500,parseInt(document.getElementById('cqf-xp').value)||20);
+  if(!name){document.getElementById('cqf-name').focus();return;}
+  const q={id:'cq_'+Date.now(),name,target,unit,xp};
+  state.customQuests.push(q);saveState();renderCustomQuests();
+  document.getElementById('cqf-name').value='';
+  document.getElementById('cqf-target').value='';
+  document.getElementById('cqf-unit').value='';
+  document.getElementById('cqf-xp').value='';
+});
+
+/* ── BODY WEIGHT ── */
+function renderBodyWeight(){
+  const chart=document.getElementById('bw-chart');
+  const sub=document.getElementById('bw-sub');
+  const logs=state.bodyWeight||[];
+  document.getElementById('bw-unit-btn').textContent=state.bodyWeightUnit||'KG';
+  if(!logs.length){chart.innerHTML='<div class="bw-empty">Log your weight to start tracking progress</div>';sub.textContent='track progress';return;}
+  const last=logs[logs.length-1];
+  const first=logs[0];
+  const diff=(last.val-first.val).toFixed(1);
+  const sign=diff>0?'+':'';
+  sub.textContent=`${last.val} ${state.bodyWeightUnit} · ${sign}${diff} total`;
+  const recent=logs.slice(-14);
+  const vals=recent.map(l=>l.val);
+  const min=Math.min(...vals)*0.98,max=Math.max(...vals)*1.01+0.01;
+  chart.innerHTML=`
+    <div class="bw-chart-title"><span>LAST ${recent.length} ENTRIES</span><span>${last.val} ${state.bodyWeightUnit}</span></div>
+    <div class="bw-bars" id="bw-bars"></div>
+    <div class="bw-stats-row">
+      <div class="bw-stat"><div class="bw-stat-label">START</div><div class="bw-stat-val">${first.val}</div></div>
+      <div class="bw-stat"><div class="bw-stat-label">CURRENT</div><div class="bw-stat-val">${last.val}</div></div>
+      <div class="bw-stat"><div class="bw-stat-label">CHANGE</div><div class="bw-stat-val" style="color:${diff<=0?'var(--green)':'var(--orange)'}">${sign}${diff}</div></div>
+    </div>`;
+  const bars=document.getElementById('bw-bars');
+  recent.forEach((l,i)=>{
+    const hPct=((l.val-min)/(max-min))*90+5;
+    const isLast=i===recent.length-1;
+    const col=document.createElement('div');col.className='bw-bar-col';
+    const d=new Date(l.date);
+    col.innerHTML=`<div class="bw-bar${isLast?' last':''}" style="height:${hPct}%"></div><div class="bw-bar-label">${d.getDate()}</div>`;
+    bars.appendChild(col);
+  });
+}
+document.getElementById('bw-unit-btn').addEventListener('click',()=>{
+  state.bodyWeightUnit=state.bodyWeightUnit==='KG'?'LBS':'KG';saveState();renderBodyWeight();
+});
+document.getElementById('bw-log-btn').addEventListener('click',()=>{
+  const val=parseFloat(document.getElementById('bw-input').value);
+  if(!val||val<20||val>600){document.getElementById('bw-input').focus();return;}
+  state.bodyWeight.push({date:getTodayStr(),val:parseFloat(val.toFixed(1))});
+  if(state.bodyWeight.length>365)state.bodyWeight.shift();
+  addLog('sys',`Body weight logged`,`${val} ${state.bodyWeightUnit}`);
+  saveState();renderBodyWeight();document.getElementById('bw-input').value='';
+});
+
+/* ── TIMER ── */
+let timerInterval=null,timerSeconds=0,timerRunning=false,timerMode='work';
+function formatTimer(s){const m=Math.floor(s/60);const ss=s%60;return`${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;}
+function setTimerDisplay(s){
+  document.getElementById('timer-display').textContent=formatTimer(s);
+  const el=document.getElementById('timer-display');
+  el.classList.toggle('warning',s<=5&&s>0&&timerRunning);
+}
+function startTimer(){
+  if(timerSeconds<=0)return;
+  if(timerRunning){clearInterval(timerInterval);timerRunning=false;document.getElementById('timer-start-btn').textContent='▶ START';document.getElementById('timer-status-label').textContent='paused';return;}
+  timerRunning=true;document.getElementById('timer-start-btn').textContent='⏸ PAUSE';document.getElementById('timer-status-label').textContent='running';
+  timerInterval=setInterval(()=>{
+    timerSeconds--;setTimerDisplay(timerSeconds);
+    if(timerSeconds<=0){
+      clearInterval(timerInterval);timerRunning=false;
+      document.getElementById('timer-start-btn').textContent='▶ START';
+      document.getElementById('timer-status-label').textContent='done!';
+      document.getElementById('timer-display').classList.remove('warning');
+      // Beep-like visual flash
+      document.getElementById('timer-display').style.color='var(--green)';
+      setTimeout(()=>{document.getElementById('timer-display').style.color='';},2000);
+      try{const ctx=new AudioContext();const osc=ctx.createOscillator();const g=ctx.createGain();osc.connect(g);g.connect(ctx.destination);osc.frequency.value=880;g.gain.setValueAtTime(0.3,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);osc.start();osc.stop(ctx.currentTime+0.5);}catch(e){}
+    }
+  },1000);
+}
+function resetTimer(){clearInterval(timerInterval);timerRunning=false;timerSeconds=0;setTimerDisplay(0);document.getElementById('timer-start-btn').textContent='▶ START';document.getElementById('timer-status-label').textContent='standby';document.getElementById('timer-display').classList.remove('warning','rest-mode');}
+document.getElementById('timer-start-btn').addEventListener('click',startTimer);
+document.getElementById('timer-reset-btn').addEventListener('click',resetTimer);
+document.getElementById('timer-set-btn').addEventListener('click',()=>{
+  const m=parseInt(document.getElementById('timer-min-input').value)||0;
+  const s=parseInt(document.getElementById('timer-sec-input').value)||0;
+  const total=m*60+s;if(total<=0)return;
+  clearInterval(timerInterval);timerRunning=false;timerSeconds=total;setTimerDisplay(total);
+  document.getElementById('timer-start-btn').textContent='▶ START';
+  document.getElementById('timer-status-label').textContent='ready';
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+});
+document.querySelectorAll('.preset-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    clearInterval(timerInterval);timerRunning=false;
+    timerSeconds=parseInt(btn.dataset.secs);setTimerDisplay(timerSeconds);
+    document.getElementById('timer-start-btn').textContent='▶ START';
+    document.getElementById('timer-status-label').textContent='ready';
+    document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+/* ── COUNTDOWN ── */
+function updateCountdown(){
+  const now=new Date();const midnight=new Date(now);midnight.setHours(24,0,0,0);
+  let diff=Math.floor((midnight-now)/1000);
+  const h=Math.floor(diff/3600);diff-=h*3600;const m=Math.floor(diff/60);const s=diff%60;
+  document.getElementById('countdown-timer').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+function updateHeaderDate(){
+  const d=new Date();const days=['SUN','MON','TUE','WED','THU','FRI','SAT'];const months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  document.getElementById('header-date').textContent=`${days[d.getDay()]} ${String(d.getDate()).padStart(2,'0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/* ── NAV ── */
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const page=btn.dataset.page;
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-'+page).classList.add('active');
+    if(page==='tools'){renderCustomQuests();renderBodyWeight();}
+  });
+});
+
+/* ── STAT BUTTONS ── */
+[{stat:'strength',plus:'str-plus',minus:'str-minus'},{stat:'agility',plus:'agi-plus',minus:'agi-minus'},{stat:'stamina',plus:'sta-plus',minus:'sta-minus'}].forEach(({stat,plus,minus})=>{
+  document.getElementById(plus).addEventListener('click',()=>adjustStat(stat,1));
+  document.getElementById(minus).addEventListener('click',()=>adjustStat(stat,-1));
+});
+
+/* ── NAME ── */
+const nameInput=document.getElementById('profile-name');
+nameInput.value=state.hunterName||'SUNG JIN-WOO';
+nameInput.addEventListener('change',()=>{state.hunterName=nameInput.value.trim().toUpperCase()||'SUNG JIN-WOO';nameInput.value=state.hunterName;saveState();});
+nameInput.addEventListener('keydown',e=>{if(e.key==='Enter')nameInput.blur();});
+
+/* ── RESET / WIPE ── */
+document.getElementById('header-reset-btn').addEventListener('click',()=>{
+  if(confirm("Reset today's quest progress? (Level, stats and records are kept.)")){{state.questProgress={};state.questXpClaimed={};state.customQuestProgress={};addLog('reset',"Daily quest progress manually reset.",'');saveState();renderQuests();renderProfile();renderCustomQuests();}
+  }
+});
+document.getElementById('header-wipe-btn').addEventListener('click',()=>{
+  if(confirm('⚠ WIPE ALL DATA? This resets everything. Cannot be undone.')){
+    localStorage.removeItem(STORAGE_KEY);state=JSON.parse(JSON.stringify(DEFAULT_STATE));
+    addLog('reset','All hunter data wiped. Starting fresh.','');saveState();fullRender();
+  }
+});
+
+/* ── FULL RENDER ── */
+function fullRender(){
+  renderProfile();renderStats();renderQuests();renderWeekly();renderTierRoad();
+  renderLog();renderQuickStats();renderTierBanner();renderPersonalBests();
+  renderBosses();updateHeaderDate();updateCountdown();
+  document.getElementById('profile-name').value=state.hunterName||'SUNG JIN-WOO';
+}
+
+/* ── BOOT ── */
+checkDailyReset();recalcStreak();checkBosses();fullRender();
+setInterval(updateCountdown,1000);
+setInterval(()=>{checkDailyReset();renderQuests();},60000);
+setInterval(renderWeekly,60000);
+</script>
+</body>
+</html>

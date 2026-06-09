@@ -1,0 +1,16 @@
+{
+  "name": "Hunter Fitness Protocol",
+  "short_name": "Hunter System",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#030407",
+  "theme_color": "#00c8ff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
